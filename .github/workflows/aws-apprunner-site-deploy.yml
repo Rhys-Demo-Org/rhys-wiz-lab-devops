@@ -48,13 +48,13 @@ jobs:
         run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
 
       - name: Authenticate to Wiz
-        run: ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        run: WIZ_ENV=test ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
         env:
           WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
 
       - name: Run wiz CLI IaC scan
-        run: ./wizcli iac scan --path ${{ env.SCAN_PATH }} --policy ${{ env.IAC-POLICY }}
+        run: WIZ_ENV=test ./wizcli iac scan --path ${{ env.SCAN_PATH }} --policy ${{ env.IAC-POLICY }}
 
   Build-ECR:
     runs-on: ubuntu-latest
@@ -116,10 +116,10 @@ jobs:
           curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
           
           # Login to Wiz
-          ./wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
+          WIZ_ENV=test ./wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
           
           # Run wiz-cli docker image scan
-          ./wizcli docker scan --image ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest \
+          WIZ_ENV=test ./wizcli docker scan --image ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest \
             --secrets \
             --sensitive-data \
             --policy "${{ env.VULNS-POLICY }}" 
@@ -128,7 +128,7 @@ jobs:
           docker push ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest
 
           # Fetch digest of Docker image for Graph enrichment
-          ./wizcli docker tag --image ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest 
+          WIZ_ENV=test ./wizcli docker tag --image ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest 
 
   Deploy-AppRunner-Service:
     runs-on: ubuntu-latest
