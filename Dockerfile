@@ -12,7 +12,7 @@ COPY ./website/flask-app /app
 # NGINX stage with vulnerable version
 FROM nginx:1.18.0-alpine
 
-# Option 2: Latest versions (uncomment to fix vulnerabilities)
+# Option 2: Latest version (uncomment to fix vulnerabilities)
 # FROM nginx:alpine
 
 # Install Python and supervisor to run both NGINX and Flask
