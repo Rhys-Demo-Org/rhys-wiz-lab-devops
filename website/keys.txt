@@ -1,4 +1,4 @@
-FAKE KEYS Updates
+FAKE KEYS Update
 github_token: "ghr_27bmmhifmx6crey85oesoopue4f63t3j0lhl"
 okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx_"
 square_token: "sq0atp-sH77LynKUlRu9pdj5W8HJK"
