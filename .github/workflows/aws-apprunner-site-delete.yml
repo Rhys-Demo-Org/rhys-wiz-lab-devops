@@ -1,0 +1,80 @@
+name: AWS - AppRunner Website Delete
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [delete-apprunner-nginx] 
+
+env:
+  # AppRunner
+  WEB_AR_STACK_NAME: jtw-ar-nginx
+  WEB_AR_SERVICE_NAME: jtw-ar-nginx-service
+  # AWS General
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  # Certificate Variables
+  PRIMARY_DOMAIN: jimthewizard.co.uk
+  WEBSITE_SUBDOMAIN: web
+  # Dockerfile
+  DOCKERFILE: Dockerfile
+  # ECR Variables
+  ECR_STACK_NAME: jtw-ar-nginx-ecr
+  ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECR_WEB_REPO_NAME: jtw-ar-nginx
+  # Route 53 Variables
+  WEB_ROUTE53_STACK_NAME: jtw-ar-nginx-r53
+  # Secrets Manager Variables
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  # Wiz Policies 
+  IAC-POLICY: carty-iac
+  VULNS-POLICY: carty-vulns
+  SCAN_PATH: .
+
+jobs:
+
+  Delete-App-Website:
+    runs-on: ubuntu-latest  
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.branch || github.ref_name }}
+          fetch-depth: 0 # Needed to get a list of changed files         
+      
+      # Step 2: Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 3: Delete Route53
+      - name: Delete Route53 CloudFormation Stack
+        run: |
+          if aws cloudformation describe-stacks --stack-name ${{ env.WEB_ROUTE53_STACK_NAME }} &>/dev/null; then
+            echo "Stack ${{ env.WEB_ROUTE53_STACK_NAME }} exists. Proceeding with deletion..."
+            aws cloudformation delete-stack --stack-name ${{ env.WEB_ROUTE53_STACK_NAME }}
+          else
+            echo "Stack ${{ env.WEB_ROUTE53_STACK_NAME }} does not exist. Skipping deletion."
+          fi
+
+      # Step 4: Delete AppRunner
+      - name: Delete AppRunner CloudFormation Stack
+        run: |
+          if aws cloudformation describe-stacks --stack-name ${{ env.WEB_AR_STACK_NAME }} &>/dev/null; then
+            echo "Stack ${{ env.WEB_AR_STACK_NAME }} exists. Proceeding with deletion..."
+            aws cloudformation delete-stack --stack-name ${{ env.WEB_AR_STACK_NAME }}
+          else
+            echo "Stack ${{ env.WEB_AR_STACK_NAME }} does not exist. Skipping deletion."
+          fi
+
+      # Step 4: Delete ECR
+      - name: Delete ECR CloudFormation Stack
+        run: |
+          if aws cloudformation describe-stacks --stack-name ${{ env.ECR_STACK_NAME }} &>/dev/null; then
+            echo "Stack ${{ env.ECR_STACK_NAME }} exists. Proceeding with deletion..."
+            aws cloudformation delete-stack --stack-name ${{ env.ECR_STACK_NAME }}
+          else
+            echo "Stack ${{ env.ECR_STACK_NAME }} does not exist. Skipping deletion."
+          fi

@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for AppRunner custom domain validation CNAME records'
+
+Parameters:
+  Record1Name:
+    Type: String
+    Description: Name of the first CNAME record (without trailing dot)
+  
+  Record1Value:
+    Type: String
+    Description: Value of the first CNAME record
+  
+  Record2Name:
+    Type: String
+    Description: Name of the second CNAME record (without trailing dot)
+  
+  Record2Value:
+    Type: String
+    Description: Value of the second CNAME record
+  
+  Record3Name:
+    Type: String
+    Description: Name of the DNS Target CNAME record
+  
+  Record3Value:
+    Type: String
+    Description: Value of the DNS Target CNAME record
+  
+  HostedZoneId:
+    Type: String
+    Description: ID of the Route53 Hosted Zone
+
+Resources:
+  ValidationRecord1:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref Record1Name
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !Ref Record1Value
+
+  ValidationRecord2:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref Record2Name
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !Ref Record2Value
+
+  ValidationRecord3:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref Record3Name
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !Ref Record3Value
+
+Outputs:
+  ValidationRecord1Name:
+    Description: Name of the first validation record
+    Value: !Ref Record1Name
+  
+  ValidationRecord2Name:
+    Description: Name of the second validation record
+    Value: !Ref Record2Name

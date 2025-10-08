@@ -1,0 +1,182 @@
+name: AWS - AppRunner Website Deploy
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  repository_dispatch:
+    types: [deploy-apprunner-nginx]
+
+env:
+  # AppRunner
+  WEB_AR_STACK_NAME: jtw-ar-nginx
+  WEB_AR_SERVICE_NAME: jtw-ar-nginx-service
+  # AWS General
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  # Certificate Variables
+  PRIMARY_DOMAIN: ${{ secrets.PRIMARY_DOMAIN }}
+  WEBSITE_SUBDOMAIN: ${{ secrets.WEBSITE_SUBDOMAIN }}
+  # Dockerfile
+  DOCKERFILE: Dockerfile
+  # ECR Variables
+  ECR_STACK_NAME: jtw-ar-nginx-ecr
+  ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECR_WEB_REPO_NAME: jtw-ar-nginx
+  # Route 53 Variables
+  WEB_ROUTE53_STACK_NAME: jtw-ar-nginx-r53
+  # Secrets Manager Variables
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  # Wiz Policies 
+  IAC-POLICY: carty-iac
+  VULNS-POLICY: carty-vulns
+  SCAN_PATH: .
+  # Test Tokens
+  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx_"
+
+jobs:
+
+  Wiz-IaC-Scan:
+    runs-on: ubuntu-latest
+    name: "Wiz-cli IaC Scan"
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Download Wiz CLI
+        run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
+
+      - name: Authenticate to Wiz
+        run: ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+
+      - name: Run wiz CLI IaC scan
+        run: ./wizcli iac scan --path ${{ env.SCAN_PATH }} --policy ${{ env.IAC-POLICY }}
+
+  Build-ECR:
+    runs-on: ubuntu-latest
+    needs: [Wiz-IaC-Scan]
+    if: true
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed to get a list of changed files         
+        
+      # Step 2: Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 3: Deploy the ECR CloudFormation Template
+      - name: Deploy Web ECR CloudFormation Stack
+        run: |
+          aws cloudformation deploy \
+            --stack-name ${{ env.ECR_STACK_NAME }} \
+            --template-file ./aws/ecr-create.yaml \
+            --parameter-overrides \
+              RepositoryName1=${{ env.ECR_WEB_REPO_NAME }}
+
+  Build-WizScan-Push:
+    runs-on: ubuntu-latest
+    needs: [Build-ECR]
+    if: true
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build Container
+      - name: Build and Push Website Image
+        run: |
+          BUILD_ARGS="--build-arg PAT_TOKEN=${{ secrets.PAT_TOKEN }}"
+          docker build $BUILD_ARGS -t ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest -f ${{ env.DOCKERFILE }} .
+          docker push ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest
+
+      # Wiz Scan and Push
+      - name: Wiz Scan & Tag
+        run: |
+          # Download Wiz CLI
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
+          
+          # Login to Wiz
+          ./wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
+          
+          # Run wiz-cli docker image scan
+          ./wizcli docker scan --image ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest \
+            --secrets \
+            --sensitive-data \
+            --policy "${{ env.VULNS-POLICY }}" 
+            
+          # Push container if pass
+          docker push ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest
+
+          # Fetch digest of Docker image for Graph enrichment
+          ./wizcli docker tag --image ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest 
+
+  Deploy-AppRunner-Service:
+    runs-on: ubuntu-latest
+    needs: [Build-WizScan-Push]
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 2: Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 3: Check if AppRunner service exists
+      - name: Check if AppRunner service exists
+        id: check_service
+        run: |
+          if aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${{ env.WEB_AR_SERVICE_NAME }}'].ServiceId" --output text | grep -q .; then
+            echo "service_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "service_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Step 4: Deploy the App Runner CloudFormation Template
+      - name: Deploy App Runner CloudFormation Stack
+        if: steps.check_service.outputs.service_exists == 'false'
+        run: |
+          aws cloudformation deploy \
+            --stack-name ${{ env.WEB_AR_STACK_NAME }} \
+            --template-file ./aws/apprunner-create.yaml \
+            --capabilities CAPABILITY_IAM \
+            --parameter-overrides \
+              ECRRepositoryName=${{ env.ECR_WEB_REPO_NAME }} \
+              ServiceName=${{ env.WEB_AR_SERVICE_NAME }} \
+              ImageTag=latest \
+              CPUSize="0.5 vCPU" \
+              MemorySize="1 GB" \
+              MinInstanceCount=1 \
+              MaxInstanceCount=5
+
+      # Step 5: Get deployment outputs
+      - name: Get CloudFormation Stack Outputs
+        run: |
+          echo "Fetching App Runner service details..."
+          aws cloudformation describe-stacks --stack-name ${{ env.WEB_AR_STACK_NAME }} --query "Stacks[0].Outputs" --output table

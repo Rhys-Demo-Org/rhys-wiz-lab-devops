@@ -1,0 +1,24 @@
+Description:  Container Registry and Repos
+
+Parameters:
+  RepositoryName1:
+    Type: String
+    Description: "Repo name."
+
+Resources:
+  Repository1:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: true
+      EncryptionConfiguration:
+        EncryptionType: KMS
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      RepositoryName: !Ref RepositoryName1
+      Tags:
+        - Key: Environment
+          Value: Production
+        - Key: Owner
+          Value: carty-se
+        - Key: App
+          Value: AppRunner-NGINX

@@ -1,0 +1,18 @@
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets
+.secrets
+.env
+
+# Claude
+./claude/*
+
+# VSCode settings
+.vscode/*
+
+# App Files to Ignore
+/planning/*
+/logs/*

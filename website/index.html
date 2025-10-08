@@ -1,0 +1,309 @@
+<!-- update -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGINX + Flask Demo Website </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        header {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+            background-color: #3498db;
+            color: white;
+        }
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            margin-bottom: 2rem;
+        }
+        .features {
+            padding: 4rem 0;
+            background-color: white;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        .cta {
+            padding: 4rem 0;
+            text-align: center;
+            background-color: #ecf0f1;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .server-info {
+            background-color: #dfe6e9;
+            padding: 2rem;
+            border-radius: 5px;
+            margin-top: 2rem;
+        }
+        .server-info pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .version-info {
+            background-color: #e17055;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+        .api-output {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #fff;
+            border-radius: 5px;
+            min-height: 50px;
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .hero h2 {
+                font-size: 2rem;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <!-- Outdated jQuery for security scanning demo -->
+    <script src="https://code.jquery.com/jquery-1.8.3.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>NGINX + Flask Demo Website</h1>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h2>Welcome to Your NGINX + Flask Server on AWS App Runner</h2>
+            <p>This demo website showcases NGINX serving static content while proxying API requests to a Flask backend, all containerized on AWS App Runner. This architecture demonstrates both frontend and backend vulnerability scanning.</p>
+            <a href="#features" class="btn">Learn About the Architecture</a>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>What is This Demo?</h2>
+            <p>This application combines NGINX as a web server and reverse proxy with a Flask Python backend, demonstrating a common microservices architecture pattern.</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>NGINX Frontend</h3>
+                    <p>NGINX serves static HTML, CSS, and JavaScript files with high performance and low resource consumption.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Flask Backend</h3>
+                    <p>Python Flask API handles dynamic requests, demonstrating backend vulnerabilities in dependencies like Flask, Werkzeug, and Jinja2.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Reverse Proxy</h3>
+                    <p>NGINX proxies API requests to Flask on the backend, creating a unified application interface.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta" style="background-color: white;">
+        <div class="container">
+            <h2>Backend Demo: Flask API with Vulnerabilities</h2>
+            <div class="server-info" style="border: 2px dashed #e74c3c;">
+                <h3 style="color: #e74c3c;">⚠️ Vulnerable Python Packages</h3>
+                <p><strong>Warning:</strong> The Flask backend uses intentionally outdated packages with known CVEs for security scanning demonstrations.</p>
+                
+                <div style="margin: 2rem 0;">
+                    <button id="api-info-btn" class="btn">Test API Info Endpoint</button>
+                    <button id="api-health-btn" class="btn">Test Health Check</button>
+                    <button id="api-vuln-btn" class="btn btn-danger">Test Vulnerable Endpoint</button>
+                    <div id="api-output" class="api-output">
+                        Click a button to test the Flask API endpoints...
+                    </div>
+                </div>
+                
+                <div style="background-color: #2c3e50; color: #ecf0f1; padding: 1rem; border-radius: 5px; margin-top: 1rem; text-align: left;">
+                    <strong>Vulnerable Packages:</strong><br>
+                    • Flask 1.1.1 (CVE-2023-30861)<br>
+                    • Werkzeug 0.16.0 (CVE-2023-25577 - High Severity)<br>
+                    • Jinja2 2.10.1 (CVE-2020-28493 - ReDoS)<br>
+                    • requests 2.20.0 (CVE-2018-18074)<br>
+                    • urllib3 1.24.1 (Multiple CVEs)<br>
+                    <br>
+                    <strong>Fix:</strong> Use Dockerfile.secure with updated packages
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>AWS App Runner Deployment</h2>
+            <p>This website is deployed using AWS App Runner with CI/CD via GitHub Actions workflows. The container is stored in Amazon ECR and the DNS is managed through Route53.</p>
+            <div class="server-info">
+                <h3>Server Information</h3>
+                <div id="version-info" class="version-info">Loading version information...</div>
+                <p>This page is served from:</p>
+                <pre id="server-info">Loading server information...</pre>
+            </div>
+            
+            <a href="#" class="btn">Back to Top</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; Jim The Wizard 2025. NGINX + Flask AppRunner Demo Website. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Flask API testing
+        document.addEventListener('DOMContentLoaded', function() {
+            const serverInfoElement = document.getElementById('server-info');
+            const versionInfoElement = document.getElementById('version-info');
+            const apiOutput = document.getElementById('api-output');
+            
+            // Load the system info from our generated file
+            fetch('/system-info.txt')
+                .then(response => response.text())
+                .then(data => {
+                    versionInfoElement.textContent = data;
+                })
+                .catch(error => {
+                    versionInfoElement.textContent = 'Could not load version information';
+                    console.error('Error fetching version info:', error);
+                });
+            
+            const info = {
+                'Date': new Date().toString(),
+                'User Agent': navigator.userAgent,
+                'Screen Size': `${window.innerWidth}x${window.innerHeight}`,
+                'Service': 'AWS App Runner',
+                'Architecture': 'NGINX + Flask'
+            };
+            
+            let infoText = '';
+            for (const [key, value] of Object.entries(info)) {
+                infoText += `${key}: ${value}\n`;
+            }
+            
+            serverInfoElement.textContent = infoText;
+            
+            // API button handlers
+            document.getElementById('api-info-btn').addEventListener('click', function() {
+                apiOutput.innerHTML = 'Loading...';
+                fetch('/api/info')
+                    .then(response => response.json())
+                    .then(data => {
+                        apiOutput.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                    })
+                    .catch(error => {
+                        apiOutput.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
+                    });
+            });
+            
+            document.getElementById('api-health-btn').addEventListener('click', function() {
+                apiOutput.innerHTML = 'Loading...';
+                fetch('/api/health')
+                    .then(response => response.json())
+                    .then(data => {
+                        apiOutput.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                    })
+                    .catch(error => {
+                        apiOutput.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
+                    });
+            });
+            
+            document.getElementById('api-vuln-btn').addEventListener('click', function() {
+                apiOutput.innerHTML = 'Loading...';
+                fetch('/api/vulnerable-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        apiOutput.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                    })
+                    .catch(error => {
+                        apiOutput.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

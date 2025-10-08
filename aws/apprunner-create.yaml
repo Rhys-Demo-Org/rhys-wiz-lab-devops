@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for App Runner service with ECR image source and custom domain'
+
+Parameters:
+  ECRRepositoryName:
+    Type: String
+    Description: Name of the ECR repository
+  
+  ImageTag:
+    Type: String
+    Description: Tag of the image to deploy
+    Default: latest
+  
+  ServiceName:
+    Type: String
+    Description: Name of the App Runner service
+
+  CPUSize:
+    Type: String
+    Description: CPU size for the App Runner instances
+    Default: 0.25 vCPU
+  
+  MemorySize:
+    Type: String
+    Description: Memory size for the App Runner instances
+    Default: 0.5 GB
+  
+  MinInstanceCount:
+    Type: Number
+    Description: Minimum number of instances
+  
+  MaxInstanceCount:
+    Type: Number
+    Description: Maximum number of instances
+  
+  # Use an existing Auto Scaling configuration if available
+  AutoScalingConfigName:
+    Type: String
+    Description: Name of an existing Auto Scaling configuration (if not provided, will use default)
+    Default: "DefaultAutoScalingConfiguration"
+
+Resources:
+  # IAM Role for App Runner to access ECR
+  AppRunnerECRAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: build.apprunner.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess'
+
+  # IAM Role for App Runner Service Instance
+  AppRunnerServiceInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: tasks.apprunner.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+
+  # App Runner Service
+  AppRunnerService:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: !Ref ServiceName
+      SourceConfiguration:
+        AuthenticationConfiguration:
+          AccessRoleArn: !GetAtt AppRunnerECRAccessRole.Arn
+        AutoDeploymentsEnabled: true
+        ImageRepository:
+          ImageIdentifier: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ECRRepositoryName}:${ImageTag}'
+          ImageConfiguration:
+            Port: 80
+          ImageRepositoryType: ECR
+      InstanceConfiguration:
+        Cpu: !Ref CPUSize
+        Memory: !Ref MemorySize
+        InstanceRoleArn: !GetAtt AppRunnerServiceInstanceRole.Arn
+      HealthCheckConfiguration:
+        Path: '/'
+        Protocol: HTTP
+        Timeout: 5
+        Interval: 10
+        HealthyThreshold: 1
+        UnhealthyThreshold: 5
+      Tags:
+        - Key: Environment
+          Value: Production
+        - Key: Owner
+          Value: carty-se
+        - Key: App
+          Value: AppRunner-NGINX
+
+Outputs:
+  AppRunnerServiceURL:
+    Description: URL of the App Runner service
+    Value: !GetAtt AppRunnerService.ServiceUrl
+  
+  AppRunnerARN:
+    Description: ARN of the App Runner service
+    Value: !GetAtt AppRunnerService.ServiceArn
+    
+  DNSTargetDomainName:
+    Description: DNS target domain name for the custom domain
+    Value: !GetAtt AppRunnerService.ServiceUrl

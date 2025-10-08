@@ -1,0 +1,78 @@
+name: AWS - AppRunner Website Update
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches-ignore:
+  #     - main
+  #   paths:
+  #     - 'website/**'
+  #     - '**/Dockerfile*'
+
+env:
+  # AppRunner
+  WEB_AR_STACK_NAME: jtw-ar-nginx
+  WEB_AR_SERVICE_NAME: jtw-ar-nginx-service
+  # AWS General
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  # Certificate Variables
+  PRIMARY_DOMAIN: jimthewizard.co.uk
+  WEBSITE_SUBDOMAIN: web
+  # Dockerfile
+  DOCKERFILE: Dockerfile
+  # ECR Variables
+  ECR_STACK_NAME: jtw-ar-nginx-ecr
+  ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECR_WEB_REPO_NAME: jtw-ar-nginx
+  # Route 53 Variables
+  WEB_ROUTE53_STACK_NAME: jtw-ar-nginx-r53
+  # Secrets Manager Variables
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  # Wiz Policies 
+  IAC-POLICY: carty-iac
+  VULNS-POLICY: carty-vulns
+  SCAN_PATH: .
+  # Test Tokens
+  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx_"
+
+jobs:
+
+  Build-Website-ECR-Push-Containers:
+    if: true
+    runs-on: ubuntu-latest  
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed to get a list of changed files         
+        
+      # Step 2: Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 3: Deploy the ECR CloudFormation Template
+      - name: Deploy Web ECR CloudFormation Stack
+        run: |
+          aws cloudformation deploy \
+            --stack-name ${{ env.ECR_STACK_NAME }} \
+            --template-file ./aws/ecr-create.yaml \
+            --parameter-overrides \
+              RepositoryName1=${{ env.ECR_WEB_REPO_NAME }}
+      
+      # Step 4: Login to ECR
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Step 5: Build and Push Website
+      - name: Build and Push Website Image
+        if: true
+        run: |
+          BUILD_ARGS="--build-arg PAT_TOKEN=${{ secrets.PAT_TOKEN }} \
+                      --build-arg WEBSITE_REPO=${{ env.WEBSITE_REPO }}"
+          docker build $BUILD_ARGS -t ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest -f ${{ env.DOCKERFILE }} .
+          docker push ${{env.ECR_URI}}/${{ env.ECR_WEB_REPO_NAME }}:latest
