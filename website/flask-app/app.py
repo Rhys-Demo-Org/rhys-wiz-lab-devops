@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 
-# Vulnerable endpoint using pickle (deserialization vulnerability)
+# Vulnerable endpoints using pickle (deserialization vulnerability)
 # Updates
 @app.route('/api/deserialize', methods=['POST'])
 def deserialize_data():
