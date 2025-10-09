@@ -29,7 +29,7 @@ env:
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
   # Wiz Policies 
   IAC-POLICY: carty-iac
-  VULNS-POLICY: rhys-audit-vulns
+  VULNS-POLICY: carty-vulns
   SCAN_PATH: .
   # Test Token
   okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx"
