@@ -32,7 +32,7 @@ env:
   VULNS-POLICY: carty-vulns
   SCAN_PATH: .
   # Test Token
-  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx"
+  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyxx"
 
 jobs:
 

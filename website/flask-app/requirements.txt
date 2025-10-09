@@ -2,7 +2,7 @@
 # DO NOT use these versions in production! 
 # Updates
 
-# Flask with known vulnerabilities
+# Flask with known vulnerability
 Flask==1.1.1              # Released 2019 - CVE-2023-30861 (Possible disclosure of permanent session cookie)
 Werkzeug==0.16.0          # CVE-2023-25577 (High severity - Improper input validation)
 Jinja2==2.10.1            # CVE-2020-28493 (ReDoS vulnerability)
