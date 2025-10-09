@@ -5,7 +5,7 @@ SSN,gender,birthdate,maiden name,last name,first name,address,city,state,zip,pho
 212-46-8915,f,4/21/1958,Pinson,Green,Marjorie,309 63rd St. #411,Oakland,CA,94618,415 986-7020,mgreen@domain.com,v,4916-9766-5240-6147,258,2009/02/25
 524-02-7657,m,3/25/1962,Hall,Munsch,Jerome,2183 Roy Alley,Centennial,CO,80112,303-901-6123,jmunsch@domain.com,m,5180-3807-3679-8221,612,2010/03/01
 489-36-8350,m,1964/09/06,Porter,Aragon,Robert,3181 White Oak Drive,Kansas City,MO,66215,816-645-6936,raragon@domain.com,v,4929-3813-3266-4295,911,2011/12/01
-514-30-2668,f,1986/05/27,Nicholson,Russell,Jacki,3097 Better Street,Kansas City,MO,66215,913-227-6106,jrussell@domain.com,a,345389698201044,232,2010/01/01
+514-30-2668,f,1986/05/27,Nicholson,Russell,Jack,3097 Better Street,Kansas City,MO,66215,913-227-6106,jrussell@domain.com,a,345389698201044,232,2010/01/01
 505-88-5714,f,1963/09/23,Mcclain,Venson,Lillian,539 Kyle Street,Wood River,NE,68883,308-583-8759,lvenson@domain.com,d,30204861594838,471,2011/12/01
 690-05-5315,m,1969/10/02,Kings,Conley,Thomas,570 Nancy Street,Morrisville,NC,27560,919-656-6779,tconley@domain.com,v,4916 4811 5814 8111,731,2010/10/01
 646-44-9061,M,1978/01/12,Kurtz,Jackson,Charles,1074 Small Street,New York,NY,10011,212-847-4915,cjackson@domain.com,m,5218 0144 2703 9266,892,2011/11/01

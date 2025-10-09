@@ -32,7 +32,7 @@ env:
   VULNS-POLICY: rhys-audit-vulns
   SCAN_PATH: .
   # Test Token
-  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx_"
+  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx"
 
 jobs:
 

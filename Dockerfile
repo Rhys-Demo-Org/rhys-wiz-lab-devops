@@ -1,4 +1,4 @@
-# Updates to Dockerfile
+# Update to Dockerfile
 # Multi-stage build with vulnerable packages 
 # Option 1: Known vulnerabilities (DEFAULT)
 FROM python:3.8-alpine AS python-base
