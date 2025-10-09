@@ -1,4 +1,4 @@
-# Updates to Dockerfile
+# Update to Dockerfile
 # Multi-stage build with vulnerable packages 
 # Option 1: Known vulnerabilities (DEFAULT)
 FROM python:3.8-alpine AS python-base
@@ -12,7 +12,7 @@ COPY ./website/flask-app /app
 # NGINX stage with vulnerable version
 FROM nginx:1.18.0-alpine
 
-# Option 2: Latest versions (uncomment to fix vulnerabilities)
+# Option 2: Latest version (uncomment to fix vulnerabilities)
 # FROM nginx:alpine
 
 # Install Python and supervisor to run both NGINX and Flask

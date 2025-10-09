@@ -31,8 +31,8 @@ env:
   IAC-POLICY: carty-iac
   VULNS-POLICY: rhys-audit-vulns
   SCAN_PATH: .
-  # Test Tokens
-  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx_"
+  # Test Token
+  okta_token: "00tUswiZSwTNsewD3ab3z9S_qtVMZ315xLYXzwyyx"
 
 jobs:
 
